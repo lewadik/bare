@@ -245,8 +245,14 @@ class RestoreRunner:
         if unique_ids:
             self._fetch(unique_ids)
         try:
+            # Write plain files first, then hardlinks: a link must find its
+            # source already on disk, whatever order the paths sort in.
             for plan in plans:
-                self._apply(plan)
+                if not self._is_hardlink_apply(plan):
+                    self._apply(plan)
+            for plan in plans:
+                if self._is_hardlink_apply(plan):
+                    self._apply(plan)
             self._apply_directory_metadata(plans)
         finally:
             self._cleanup()
@@ -304,6 +310,14 @@ class RestoreRunner:
         flags, plainlen, payload = self._spill.read(obj_id)
         return decode(flags, payload, plainlen)
     # -- writing ----------------------------------------------------------
+    @staticmethod
+    def _is_hardlink_apply(plan: _Plan) -> bool:
+        return (
+            plan.action in ("write", "link")
+            and plan.entry.get("t") == "f"
+            and bool(plan.entry.get("hl"))
+        )
+
     def _apply(self, plan: _Plan) -> None:
         entry = plan.entry
         kind = entry.get("t")
@@ -328,7 +342,7 @@ class RestoreRunner:
             if os.path.lexists(path) and (os.path.islink(path) or not os.path.isdir(path)):
                 os.unlink(path)
             if kind == "f":
-                if plan.action == "link" and self._try_hardlink(entry, path):
+                if entry.get("hl") and self._try_hardlink(entry, path):
                     return
                 self._write_file(entry, path)
             elif kind == "l":
