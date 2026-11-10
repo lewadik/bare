@@ -18,6 +18,15 @@ import unittest
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
 
+def _flat(text: str, limit: int = 700) -> str:
+    return " ".join(text.split())[:limit]
+
+
+def _announce(kind: str, test: str, tb: str) -> None:
+    """Emit a GitHub annotation so the failure is visible on the run page."""
+    print(f"::error title={kind}: {test}::{_flat(tb)}")
+
+
 def _summarize_failures(result: unittest.result.TestResult) -> None:
     """Mirror failures into $GITHUB_STEP_SUMMARY when running on Actions.
 
@@ -54,11 +63,17 @@ def main(argv: list[str]) -> int:
     if loader.errors:
         for error in loader.errors:
             print(error, file=sys.stderr)
+            print(f"::error title=collection error::{_flat(error)}")
         return 1
     result = unittest.TextTestRunner(verbosity=2 if verbose else 1, buffer=False).run(suite)
     if not result.wasSuccessful():
+        for test, tb in result.errors[:12]:
+            _announce("error", test, tb)
+        for test, tb in result.failures[:12]:
+            _announce("failure", test, tb)
         _summarize_failures(result)
-    return 0 if result.wasSuccessful() else 1
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
