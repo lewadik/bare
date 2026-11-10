@@ -1,0 +1,47 @@
+[Unit]
+Description=Haven backup repository (havend)
+Documentation=file:/usr/local/share/doc/haven/README.md
+After=network-online.target local-fs.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=haven
+Group=haven
+ExecStart=/usr/local/bin/havend --config /etc/haven/server.toml serve
+# Reloads tokens.json without dropping connections.
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=3s
+TimeoutStopSec=30s
+KillSignal=SIGTERM
+
+# --- sandboxing ---------------------------------------------------------
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/haven
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+CapabilityBoundingSet=
+AmbientCapabilities=
+# The repository is reachable only from the backup network; keep the firewall
+# closed for everyone else (see docs/operations.md).
+
+[Install]
+WantedBy=multi-user.target

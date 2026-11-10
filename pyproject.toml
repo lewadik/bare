@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "haven-backup"
+version = "1.0.0"
+description = "Deduplicating client/server backup and restore for Linux servers"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary — set by the repository owner" }
+authors = [{ name = "Haven maintainers" }]
+keywords = ["backup", "deduplication", "restore", "linux", "server"]
+dependencies = []
+classifiers = [
+  "Environment :: Console",
+  "Intended Audience :: System Administrators",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: System :: Archiving :: Backup",
+]
+
+[project.scripts]
+haven = "haven.cli:main"
+havend = "haven.server.daemon:main"
+
+[project.urls]
+Documentation = "https://example.invalid/haven/docs"
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+include = ["haven*"]

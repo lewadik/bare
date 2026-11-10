@@ -1,0 +1,13 @@
+# Only needed when havend runs outside systemd (its logs go to the journal
+# otherwise). Point the daemon's stdout at these files, e.g.
+#   havend --config /etc/haven/server.toml serve >> /var/log/haven/havend.log 2>&1
+
+/var/log/haven/*.log {
+    weekly
+    rotate 8
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 haven haven
+}

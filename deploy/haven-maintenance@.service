@@ -1,0 +1,17 @@
+[Unit]
+Description=Haven retention and garbage collection for profile %i
+Documentation=file:/usr/share/doc/haven/README.md
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+# Apply the retention policy from [profiles.%i.retention], then reclaim space.
+# Prune only deletes manifests; gc rewrites packs that still hold dead chunks.
+ExecStart=/usr/local/bin/haven --config /etc/haven/client.toml --profile %i prune --apply
+ExecStart=/usr/local/bin/haven --config /etc/haven/client.toml --profile %i gc --apply
+TimeoutStartSec=6h
+Nice=15
+IOSchedulingClass=idle
+NoNewPrivileges=yes
+PrivateTmp=yes

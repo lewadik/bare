@@ -1,0 +1,15 @@
+[Unit]
+Description=Nightly Haven backup for profile %i
+Documentation=file:/usr/share/doc/haven/README.md
+
+[Timer]
+# 02:30 local time; the random delay spreads load when many hosts share one
+# repository. Persistent=true runs a missed backup after downtime.
+OnCalendar=*-*-* 02:30:00
+RandomizedDelaySec=30m
+AccuracySec=1m
+Persistent=true
+Unit=haven-backup@%i.service
+
+[Install]
+WantedBy=timers.target

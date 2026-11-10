@@ -1,0 +1,14 @@
+[Unit]
+Description=Monthly Haven restore drill for profile %i
+Documentation=file:/usr/share/doc/haven/README.md
+
+[Timer]
+# First Sunday of the month, 05:30.
+OnCalendar=Sun *-*-1..7 05:30:00
+RandomizedDelaySec=2h
+AccuracySec=10m
+Persistent=true
+Unit=haven-verify@%i.service
+
+[Install]
+WantedBy=timers.target

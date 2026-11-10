@@ -1,0 +1,17 @@
+[Unit]
+Description=Haven restore drill: verify every snapshot of profile %i
+Documentation=file:/usr/share/doc/haven/README.md
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+# Reads every referenced chunk back from the repository and hashes it. This is
+# the real "can I restore?" test; schedule it monthly per host, not nightly:
+# it transfers the full logical size of the repository.
+ExecStart=/usr/local/bin/haven --config /etc/haven/client.toml --profile %i verify --all
+TimeoutStartSec=24h
+Nice=19
+IOSchedulingClass=idle
+NoNewPrivileges=yes
+PrivateTmp=yes

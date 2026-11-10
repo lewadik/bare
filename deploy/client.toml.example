@@ -1,0 +1,57 @@
+# Haven client configuration — /etc/haven/client.toml (mode 0600)
+#
+# One table per profile. `haven --profile <name> ...` selects one; a profile is
+# what the systemd template instance is named after (haven-backup@system).
+# This file contains credentials: keep it 0600 and out of configuration
+# management that stores secrets in the clear.
+
+[profiles.system]
+url = "https://backup.example.com:8443"
+token = "hvn_REPLACE_WITH_TOKEN_FROM_havend_token_add"
+secret = "REPLACE_WITH_64_HEX_CHARS_FROM_havend_init"
+
+# What a plain `haven backup` without arguments backs up.
+paths = ["/etc", "/srv", "/var/lib/postgresql"]
+
+# Excluded in addition to the built-in list (/proc, /sys, /dev, /run, /tmp,
+# lost+found, *.sock, *.tmp, *.swp). A trailing slash matches directories only;
+# `!pattern` re-includes; `**` spans directories.
+exclude = [
+  "/var/lib/postgresql/*/main/pg_wal",
+  "/var/lib/docker/overlay2",
+  "!.keep",
+]
+
+# Content-defined chunking. avg drives the average chunk size: 1M gives good
+# dedup for config/DB/app data. Use "fixed=8M" for media volumes (much faster,
+# far less dedup after in-place edits).
+chunking = "min=64K,avg=1M,max=8M"
+compress = "zlib:6"
+
+# Per-file chunk cache: unchanged files are not re-read.
+cache = "/var/cache/haven/index.sqlite"
+
+# Where the upload pack is staged before it is sent. Needs free space roughly
+# equal to one run's new data. Defaults to a directory under the cache.
+# work_dir = "/var/tmp/haven"
+
+timeout = 120
+retries = 3
+
+# Hooks can also be supplied as environment variables by a systemd drop-in:
+#   [Service]
+#   Environment=HAVEN_PRE_HOOK=/usr/local/sbin/haven-pg-dump
+#   Environment=HAVEN_POST_HOOK=/usr/local/sbin/haven-pg-cleanup
+
+# Verify the server certificate against this CA (self-signed deployments).
+ca_file = "/etc/haven/tls/ca.crt"
+# insecure = true   # never in production: disables certificate verification
+
+[profiles.system.retention]
+# Applied by `haven prune` when no --keep-* flag is given (the maintenance unit
+# runs it that way). Per host, union of the rules.
+keep_last = 3
+keep_daily = 7
+keep_weekly = 4
+keep_monthly = 12
+keep_yearly = 0

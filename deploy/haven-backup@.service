@@ -1,0 +1,25 @@
+[Unit]
+Description=Haven backup for profile %i
+Documentation=file:/usr/local/share/doc/haven/README.md
+After=network-online.target
+Wants=network-online.target
+# Do not start a backup when the repository is unreachable? It will fail
+# quickly and the timer retries on the next schedule; optional:
+# After=network-online.target
+
+[Service]
+Type=oneshot
+# Backing up /etc, /var and database dumps requires root; drop-ins can add
+# ProtectSystem=strict plus ReadWritePaths for the directories your hooks use.
+User=root
+ExecStart=/usr/local/bin/haven --config /etc/haven/client.toml --profile %i backup
+# A stale lock or a slow disk must not block the next timer run forever.
+TimeoutStartSec=12h
+Nice=10
+IOSchedulingClass=idle
+NoNewPrivileges=yes
+PrivateTmp=yes
+# Pre/post hooks (database dumps) are configured per profile:
+#   systemctl edit haven-backup@system
+#   [Service]
+#   Environment=PGHOST=/var/run/postgresql

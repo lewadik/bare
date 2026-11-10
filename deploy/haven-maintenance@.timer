@@ -1,0 +1,14 @@
+[Unit]
+Description=Weekly Haven prune + garbage collection for profile %i
+Documentation=file:/usr/share/doc/haven/README.md
+
+[Timer]
+# Sunday 04:30, after the nightly backups.
+OnCalendar=Sun *-*-* 04:30:00
+RandomizedDelaySec=1h
+AccuracySec=5m
+Persistent=true
+Unit=haven-maintenance@%i.service
+
+[Install]
+WantedBy=timers.target
